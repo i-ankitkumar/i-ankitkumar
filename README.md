@@ -1,5 +1,5 @@
 # 💫 About Me:
-a person who loves black terminal with green font color! 👨🏽‍💻
+IT Infrastructure & Operations Specialist | Cloud, Automation, and Security Enthusiast | Driving Scalable Solutions & Operational Excellence 👨🏽‍💻
 
 
 ## 🌐 Socials:
