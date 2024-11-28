@@ -1,5 +1,5 @@
 # 💫 About Me:
-IT Infrastructure & Operations Specialist | Cloud, Automation, and Security Enthusiast | Driving Scalable Solutions & Operational Excellence 👨🏽‍💻
+🚀 IT Infrastructure & Operations Specialist | ☁️ Cloud | 🤖 Automation | 🔒 Security Enthusiast | Driving Scalable Solutions & Operational Excellence 🌟
 
 
 ## 🌐 Socials:
