@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 *.svg.png
+cache/ascii_ab/
+cache/ascii_preview.png
+cache/ascii_blocks.txt
+assets/_face_tmp.png

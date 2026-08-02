@@ -2,14 +2,13 @@ name: Update profile card
 
 on:
   schedule:
-    # Daily 06:30 UTC
     - cron: "30 6 * * *"
   workflow_dispatch:
   push:
     paths:
       - "config.json"
       - "scripts/**"
-      - "assets/avatar.png"
+      - "assets/portrait.png"
       - ".github/workflows/update-profile.yml"
 
 permissions:
@@ -19,33 +18,27 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - name: Install deps
-        run: pip install -r requirements.txt
-
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chafa
+          pip install -r requirements.txt
       - name: Regenerate SVGs
         env:
-          # GITHUB_TOKEN is enough for public user/repo stats + contributions
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: python scripts/update.py
-
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dark_mode.svg light_mode.svg cache/stats.json cache/ascii.txt assets/avatar.png || true
-          if git diff --cached --quiet; then
-            echo "No changes"
-            exit 0
-          fi
+          git add dark_mode.svg light_mode.svg cache/stats.json cache/ascii.txt assets/face.jpg || true
+          git restore --staged assets/avatar.png 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
           git commit -m "chore: refresh neofetch profile card"
           git push
