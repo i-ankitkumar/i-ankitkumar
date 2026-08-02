@@ -2,9 +2,9 @@
 <p align="center">
   <a href="https://github.com/i-ankitkumar">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./dark_mode.svg" />
-      <source media="(prefers-color-scheme: light)" srcset="./light_mode.svg" />
-      <img src="./dark_mode.svg" alt="Ankit Kumar — GitHub profile" width="100%" />
+      <source media="(prefers-color-scheme: dark)" srcset="./dark_mode.svg?v=2" />
+      <source media="(prefers-color-scheme: light)" srcset="./light_mode.svg?v=2" />
+      <img src="./dark_mode.svg?v=2" alt="Ankit Kumar — GitHub profile" width="100%" />
     </picture>
   </a>
 </p>
