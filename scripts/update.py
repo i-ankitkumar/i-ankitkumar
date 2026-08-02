@@ -19,11 +19,17 @@ def run(script: str) -> None:
 
 
 def refresh_avatar() -> None:
+    """Keep GitHub avatar cached, but never overwrite a local portrait.png."""
     dest = ROOT / "assets" / "avatar.png"
     dest.parent.mkdir(parents=True, exist_ok=True)
     url = "https://github.com/i-ankitkumar.png?size=400"
     print(f"Downloading {url}")
     urllib.request.urlretrieve(url, dest)
+    portrait = ROOT / "assets" / "portrait.png"
+    if portrait.exists():
+        print(f"Using local portrait for ASCII: {portrait}")
+    else:
+        print("No portrait.png — ASCII will use GitHub avatar")
 
 
 def main() -> None:

@@ -246,11 +246,21 @@ def main() -> None:
     (ROOT / "cache").mkdir(exist_ok=True)
     (ROOT / "assets").mkdir(exist_ok=True)
 
-    avatar = ROOT / "assets" / "avatar.png"
-    ensure_avatar(avatar)
+    avatar = ROOT / "assets" / "portrait.png"
+    if not avatar.exists():
+        avatar = ROOT / "assets" / "avatar.png"
+    if cfg.get("ascii", {}).get("source"):
+        candidate = ROOT / cfg["ascii"]["source"]
+        if candidate.exists():
+            avatar = candidate
+    # Keep avatar.png in sync for Actions that refresh from GitHub — but prefer portrait when present
+    if avatar.name == "portrait.png":
+        ensure_avatar(ROOT / "assets" / "avatar.png")  # still refresh github avatar copy
+    else:
+        ensure_avatar(avatar)
 
-    w = int(cfg.get("ascii", {}).get("width", 42))
-    h = int(cfg.get("ascii", {}).get("height", 24))
+    w = int(cfg.get("ascii", {}).get("width", 48))
+    h = int(cfg.get("ascii", {}).get("height", 30))
     ascii_lines = image_to_ascii(avatar, width=w, height=h)
     # Pad lines to equal width
     max_w = max(len(l) for l in ascii_lines)

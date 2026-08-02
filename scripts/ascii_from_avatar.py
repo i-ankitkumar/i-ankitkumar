@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert GitHub avatar image to dense ASCII portrait lines."""
+"""Convert portrait/avatar image to dense ASCII (tuned for high-contrast headshots)."""
 
 from __future__ import annotations
 
@@ -7,50 +7,74 @@ from pathlib import Path
 
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
-# Classic neofetch-style ramp (dark → light ink on dark bg after invert)
-RAMP = " .:-=+*#%@"
+# Neofetch-style ramp — good midtone separation for face + fabric
+RAMP = " .,:;irsXA253hMHGS#9B&@"
 
 
-def _face_crop(img: Image.Image) -> Image.Image:
+def _subject_crop(img: Image.Image) -> Image.Image:
     """
-    Heuristic head/shoulders crop.
-    GitHub avatars that are full-body outdoor shots need a tight upper crop
-    so ASCII reads as a portrait (Andrew6rant-style), not scene noise.
+    Bust crop optimized for waist-up portraits:
+    - keep head, sunglasses, shoulders, polo
+    - trim sparse shutter/wall sides that become noisy columns in ASCII
     """
     w, h = img.size
-    # Prefer upper-central square covering roughly head + torso
-    crop_h = int(h * 0.58)
-    crop_w = crop_h
-    left = max(0, (w - crop_w) // 2)
-    top = int(h * 0.02)
-    if top + crop_h > h:
-        top = max(0, h - crop_h)
-    if left + crop_w > w:
-        left = max(0, w - crop_w)
-    return img.crop((left, top, left + crop_w, top + crop_h))
+    left = int(w * 0.16)
+    right = int(w * 0.84)
+    top = int(h * 0.01)
+    bottom = int(h * 0.70)
+    return img.crop((left, top, right, bottom))
 
 
-def image_to_ascii(path: Path, width: int = 46, height: int = 24) -> list[str]:
-    img = Image.open(path).convert("RGB")
-    img = ImageOps.exif_transpose(img)
-    img = _face_crop(img)
-    img = img.convert("L")
+def _percentile_stretch(g: Image.Image, lo_p: float = 0.02, hi_p: float = 0.98) -> Image.Image:
+    px = sorted(g.getdata())
+    n = len(px)
+    lo = px[int(n * lo_p)]
+    hi = px[max(lo + 1, int(n * hi_p))]
+    scale = 255.0 / (hi - lo)
+    return g.point(lambda v: max(0, min(255, int((v - lo) * scale))))
 
-    img = ImageEnhance.Contrast(img).enhance(1.85)
-    img = ImageEnhance.Brightness(img).enhance(1.08)
-    img = img.filter(ImageFilter.UnsharpMask(radius=1.0, percent=140, threshold=2))
-    img = img.resize((width, height), Image.Resampling.LANCZOS)
 
-    pixels = list(img.getdata())
-    lines: list[str] = []
+def _center_weight(g: Image.Image, strength: float = 0.22) -> Image.Image:
+    """Slightly darken edges so background shutters don't dominate."""
+    w, h = g.size
+    # Build a simple radial-ish vertical vignette via pixel loop on a small map
+    vig = Image.new("L", (w, h))
+    cx, cy = w / 2, h * 0.42
+    rx, ry = w * 0.55, h * 0.62
+    pix = vig.load()
+    for y in range(h):
+        for x in range(w):
+            nx = (x - cx) / rx
+            ny = (y - cy) / ry
+            d = (nx * nx + ny * ny) ** 0.5
+            # 255 center → darker edges
+            fall = max(0.0, min(1.0, d))
+            pix[x, y] = int(255 * (1.0 - strength * fall * fall))
+    return Image.composite(g, Image.new("L", (w, h), 0), vig)
+
+
+def image_to_ascii(path: Path, width: int = 48, height: int = 30) -> list[str]:
+    img = ImageOps.exif_transpose(Image.open(path)).convert("RGB")
+    img = _subject_crop(img)
+    g = img.convert("L")
+
+    g = _percentile_stretch(g)
+    g = ImageEnhance.Contrast(g).enhance(1.85)
+    g = ImageEnhance.Brightness(g).enhance(1.06)
+    g = _center_weight(g, strength=0.28)
+    # Keep shirt ribbing / shutter grain readable
+    g = g.filter(ImageFilter.UnsharpMask(radius=1.15, percent=145, threshold=2))
+
+    g = g.resize((width, height), Image.Resampling.LANCZOS)
+    pixels = list(g.getdata())
     n = len(RAMP) - 1
+    lines: list[str] = []
     for y in range(height):
         row = []
         for x in range(width):
-            # Dark areas → denser glyphs
+            # Dark → dense glyph (portrait on dark terminal bg)
             val = 255 - pixels[y * width + x]
-            idx = int(val / 255 * n + 0.5)
-            idx = max(0, min(n, idx))
+            idx = max(0, min(n, int(val / 255 * n + 0.5)))
             row.append(RAMP[idx])
         lines.append("".join(row))
     return lines
@@ -63,7 +87,10 @@ def save_ascii_cache(lines: list[str], out: Path) -> None:
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parents[1]
-    avatar = root / "assets" / "avatar.png"
+    # Prefer dedicated portrait if present
+    avatar = root / "assets" / "portrait.png"
+    if not avatar.exists():
+        avatar = root / "assets" / "avatar.png"
     lines = image_to_ascii(avatar)
     save_ascii_cache(lines, root / "cache" / "ascii.txt")
     for line in lines:

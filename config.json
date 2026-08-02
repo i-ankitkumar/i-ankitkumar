@@ -21,7 +21,8 @@
     "Instagram": "iankitkumar"
   },
   "ascii": {
-    "width": 46,
-    "height": 24
+    "width": 48,
+    "height": 30,
+    "source": "assets/portrait.png"
   }
 }
