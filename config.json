@@ -1,0 +1,27 @@
+{
+  "username": "i-ankitkumar",
+  "display_name": "Ankit Kumar",
+  "user_at_host": "ankit@kumar",
+  "bio": {
+    "OS": "Linux · macOS · Cloud",
+    "Host": "IT Infrastructure & Operations",
+    "Kernel": "Cloud · Automation · Security",
+    "Shell": "zsh · Cursor · VS Code",
+    "Languages.Stack": "Python, Terraform, Bash, YAML",
+    "Languages.Cloud": "AWS, Azure, Linux, Ansible",
+    "Languages.Data": "Pandas, NumPy, TensorFlow, Keras",
+    "Focus": "Cloud · Automation · MLOps",
+    "Location": "India · Remote"
+  },
+  "contact": {
+    "GitHub": "i-ankitkumar",
+    "LinkedIn": "i-ankitkumar",
+    "Twitter": "n0tg33k",
+    "YouTube": "@AnkitKumar22",
+    "Instagram": "iankitkumar"
+  },
+  "ascii": {
+    "width": 46,
+    "height": 24
+  }
+}
