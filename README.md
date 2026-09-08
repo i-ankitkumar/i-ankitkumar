@@ -8,6 +8,16 @@
     </picture>
   </a>
 </p>
+---
+
+**DevOps &amp; Cloud Infrastructure Engineer** · Azure · AWS · Terraform · Linux · Splunk · Ansible
+
+RHCSA · Terraform Associate · AZ-104 · AZ-900 · AI-900
+
+Mumbai, India → relocating to Germany
+
+---
+
 
 <p align="center">
   <a href="https://iankitkumar.in"><img src="https://img.shields.io/badge/Portfolio-iankitkumar.in-5EEAD4?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Portfolio" /></a>
