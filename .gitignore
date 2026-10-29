@@ -6,3 +6,6 @@ cache/ascii_ab/
 cache/ascii_preview.png
 cache/ascii_blocks.txt
 assets/_face_tmp.png
+
+# Hermes local skill cache (contains large platform binaries) - never commit
+.hermes/
