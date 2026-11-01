@@ -128,12 +128,18 @@ def fetch_stats(username: str = USERNAME) -> dict:
 def main() -> None:
     cache = ROOT / "cache"
     cache.mkdir(exist_ok=True)
+    existing = cache / "stats.json"
+    previous = {}
+    if existing.exists():
+        try:
+            previous = json.loads(existing.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            previous = {}
     try:
         stats = fetch_stats()
     except urllib.error.HTTPError as exc:
         print(f"warn: fetch failed ({exc}); keeping previous cache if any")
-        existing = cache / "stats.json"
-        if existing.exists():
+        if previous:
             return
         stats = {
             "username": USERNAME,
@@ -146,7 +152,13 @@ def main() -> None:
             "commits_year": None,
             "fetched_at": datetime.now(timezone.utc).isoformat(),
         }
-    (cache / "stats.json").write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
+    # Without a token the GraphQL contributions query cannot run. Do not let
+    # that null out a value the card is already rendering: keep the last
+    # known count instead of silently dropping the row.
+    if stats.get("commits_year") is None and previous.get("commits_year") is not None:
+        print("warn: no contributions in this run; keeping the previous count")
+        stats["commits_year"] = previous["commits_year"]
+    existing.write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(stats, indent=2))
 
 
