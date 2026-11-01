@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Generate Andrew6rant-style neofetch profile SVGs (dark + light).
+"""Generate the terminal-register profile card SVGs (dark + light).
 
-Left: identifiable face crop photo (ASCII from busy photos rarely reads).
-Right: classic neofetch dotted key/value panel.
+Layout: window chrome / duotone face crop on the left / aligned key-value
+panel on the right. Every visible string comes from config.json; the stats
+rows come from cache/stats.json.
+
+Design rules (see PRODUCT.md, Surface 1):
+- Terminal / CLI register is binding: monospace, GitHub-style palette, key/value rows.
+- No cosplay fields. Nothing labelled OS / Uptime / Kernel / Shell.
+- The value column is a fixed grid so values align down the card.
+- Duotone photo, so the portrait sits inside the palette instead of fighting it.
+- Both themes move together. Both must clear WCAG AA on the key/value text.
 """
 
 from __future__ import annotations
@@ -21,32 +29,47 @@ from ascii_from_avatar import _face_crop, image_to_ascii, save_ascii_cache  # no
 
 THEMES = {
     "dark": {
-        "bg": "#161b22",
+        "bg": "#0d1117",
+        "bar": "#161b22",
+        "frame": "#30363d",
         "fg": "#c9d1d9",
         "key": "#ffa657",
         "value": "#a5d6ff",
-        "cc": "#616e7f",
+        "cc": "#768390",
         "title": "#8b949e",
         "dot_r": "#ff5f56",
         "dot_y": "#ffbd2e",
         "dot_g": "#27c93f",
-        "bar": "#21262d",
-        "frame": "#30363d",
+        # duotone: shadows -> card background, highlights -> soft ink
+        "duo_shadow": (13, 17, 23),
+        "duo_highlight": (201, 209, 217),
     },
     "light": {
         "bg": "#ffffff",
+        "bar": "#f6f8fa",
+        "frame": "#d0d7de",
         "fg": "#24292f",
         "key": "#953800",
         "value": "#0550ae",
-        "cc": "#8c959f",
+        "cc": "#6e7781",
         "title": "#57606a",
         "dot_r": "#ff5f56",
         "dot_y": "#ffbd2e",
         "dot_g": "#27c93f",
-        "bar": "#f6f8fa",
-        "frame": "#d0d7de",
+        # duotone on a light card: ink shadows into soft paper highlights
+        "duo_shadow": (31, 35, 40),
+        "duo_highlight": (233, 237, 242),
     },
 }
+
+# geometry
+BAR_H = 38
+PAD = 24
+PHOTO = 300
+LABEL_CHARS = 13  # minimum width of the key column, in characters
+CHAR_W = 7.9  # monospace advance at font-size 13
+FONT_SIZE = 13
+LINE_H = 21
 
 
 def esc(s: str) -> str:
@@ -82,131 +105,152 @@ def load_stats() -> dict:
     }
 
 
-def prepare_face_jpg(src: Path, out: Path, size: int = 400) -> Path:
+def duotone_face(src: Path, out: Path, theme: str, size: int = 420) -> Path:
+    """Crop to the face, then map luminance onto a two-colour ramp.
+
+    The ramp keeps the portrait inside the card palette: dark theme fades the
+    shadows into the card, light theme fades the highlights into the paper.
+    """
+    t = THEMES[theme]
     img = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
     img = _face_crop(img)
     w, h = img.size
     side = min(w, h)
-    img = img.crop(
-        ((w - side) // 2, (h - side) // 2, (w - side) // 2 + side, (h - side) // 2 + side)
-    )
+    img = img.crop(((w - side) // 2, (w - side) // 2, (w - side) // 2 + side, (w - side) // 2 + side))
     img = img.resize((size, size), Image.Resampling.LANCZOS)
-    img = ImageEnhance.Contrast(img).enhance(1.12)
-    img = ImageEnhance.Color(img).enhance(1.05)
+    img = ImageEnhance.Contrast(img).enhance(1.14)
+
+    gray = ImageOps.grayscale(img)
+    gray = ImageOps.autocontrast(gray, cutoff=1)
+    shadow, highlight = t["duo_shadow"], t["duo_highlight"]
+    luts = []
+    for c in range(3):
+        luts.append(
+            gray.point(
+                [int(shadow[c] + (highlight[c] - shadow[c]) * (i / 255.0)) for i in range(256)]
+            )
+        )
+    duo = Image.merge("RGB", luts)
+
     out.parent.mkdir(parents=True, exist_ok=True)
-    img.save(out, format="JPEG", quality=88, optimize=True)
+    duo.save(out, format="JPEG", quality=90, optimize=True)
     return out
 
 
-def dotted_row(label: str, value: str, width: int = 48) -> tuple[str, str, str]:
-    prefix = f"{label}:"
-    room = max(3, width - len(prefix) - len(value))
-    return label, " " + ("." * room) + " ", value
-
-
-def render_info_lines(cfg: dict, stats: dict) -> list[tuple[str, str]]:
-    lines: list[tuple[str, str]] = []
-    user_at = cfg["user_at_host"]
-    lines.append(("header", user_at))
-    lines.append(("rule", "─" * max(28, len(user_at) + 8)))
-    bio = dict(cfg["bio"])
-    bio["Uptime"] = stats.get("uptime", bio.get("Uptime", ""))
-    for key in [
-        "OS",
-        "Uptime",
-        "Host",
-        "Kernel",
-        "Shell",
-        "Languages.Stack",
-        "Languages.Cloud",
-        "Languages.Data",
-        "Languages.AI",
-        "Focus",
-        "Location",
-    ]:
-        if bio.get(key):
-            lines.append(("row", json.dumps({"label": key, "value": str(bio[key])})))
-    lines.append(("blank", ""))
-    lines.append(("section", "Contact"))
+def build_rows(cfg: dict) -> list[tuple[str, str, str]]:
+    """Right-column rows as (kind, key, value). kind: row | section | blank | header | rule."""
+    rows: list[tuple[str, str, str]] = []
+    rows.append(("header", "", cfg["user_at_host"]))
+    rows.append(("rule", "", ""))
+    for key, value in cfg["bio"].items():
+        rows.append(("row", key, str(value)))
+    rows.append(("blank", "", ""))
+    rows.append(("section", "Contact", ""))
     for label, value in cfg["contact"].items():
-        lines.append(("row", json.dumps({"label": label, "value": value})))
-    lines.append(("blank", ""))
-    lines.append(("section", "GitHub Stats"))
-    repos, stars, followers = (
-        stats.get("public_repos", 0),
-        stats.get("stars", 0),
-        stats.get("followers", 0),
-    )
+        rows.append(("row", label, value))
+    return rows
+
+
+def build_stat_rows(stats: dict) -> list[tuple[str, str]]:
+    """Left-column rows, under the photo. Vanity counters stay out."""
+    rows: list[tuple[str, str]] = []
+    repos = stats.get("public_repos", 0)
+    rows.append(("Repos", str(repos)))
     commits = stats.get("commits_year")
-    lines.append(("row", json.dumps({"label": "Repos", "value": f"{repos} | Stars: {stars}"})))
     if commits is not None:
-        lines.append(
-            (
-                "row",
-                json.dumps(
-                    {"label": "Commits", "value": f"{commits:,} | Followers: {followers}"}
-                ),
-            )
-        )
-    else:
-        lines.append(("row", json.dumps({"label": "Followers", "value": str(followers)})))
-    return lines
+        rows.append(("Commits", f"{commits:,} · last 12 months"))
+    return rows
 
 
-def build_svg(mode: str, face_b64: str, cfg: dict, stats: dict) -> str:
+def build_svg(mode: str, photo_b64: str, cfg: dict, stats: dict) -> str:
     t = THEMES[mode]
-    font_size, line_h, pad = 14, 19, 16
-    photo, photo_x, photo_y = 360, pad + 8, 52
-    info_x = photo_x + photo + 36
-    width = int(info_x + 540)
-    title = f"{cfg['username']} / README.md"
+    rows = build_rows(cfg)
+    stat_rows = build_stat_rows(stats)
 
-    info_parts, y, col_width = [], photo_y + 8, 50
-    for kind, payload in render_info_lines(cfg, stats):
+    photo_x = PAD
+    photo_y = BAR_H + 26
+    info_x = photo_x + PHOTO + 44
+    label_x = info_x + 10
+    # the key column is as wide as the longest label, so every value starts
+    # on the same x no matter how long its label is
+    label_col = max(
+        [len(key) for kind, key, _ in rows if kind == "row"]
+        + [len(label) for label, _ in stat_rows]
+        + [LABEL_CHARS]
+    )
+    value_x = label_x + (label_col + 2) * CHAR_W
+
+    widest = 0
+    for kind, key, value in rows:
+        if kind == "row":
+            widest = max(widest, len(value))
+    width = int(value_x + widest * CHAR_W + PAD)
+    width = max(width, 900)
+
+    parts: list[str] = []
+    y = photo_y + 2
+    for kind, key, value in rows:
         if kind == "blank":
-            y += line_h // 2
+            y += LINE_H // 2
             continue
         if kind == "header":
-            info_parts.append(
-                f'<tspan x="{info_x}" y="{y}" fill="{t["fg"]}" font-weight="700">{esc(payload)}</tspan>'
+            parts.append(
+                f'<tspan x="{info_x}" y="{y}" fill="{t["fg"]}" font-weight="600">{esc(value)}</tspan>'
             )
-            y += line_h
+            y += LINE_H
             continue
         if kind == "rule":
-            info_parts.append(f'<tspan x="{info_x}" y="{y}" class="cc">{esc(payload)}</tspan>')
-            y += line_h
+            rule_w = int(width - info_x - PAD)
+            parts.append(
+                f'<rect x="{info_x}" y="{y - 11}" width="{rule_w}" height="1" fill="{t["frame"]}"/>'
+            )
+            y += LINE_H
             continue
         if kind == "section":
-            info_parts.append(
-                f'<tspan x="{info_x}" y="{y}" class="cc">- </tspan><tspan class="key">{esc(payload)}</tspan>'
+            parts.append(
+                f'<tspan x="{info_x}" y="{y}" fill="{t["cc"]}">—</tspan>'
+                f'<tspan x="{info_x + 16}" fill="{t["key"]}" font-weight="600">{esc(key)}</tspan>'
             )
-            y += line_h
+            y += LINE_H
             continue
-        data = json.loads(payload)
-        label, dots, value = dotted_row(data["label"], data["value"], col_width)
-        if "." in label:
-            a, b = label.split(".", 1)
-            label_xml = (
-                f'<tspan class="key">{esc(a)}</tspan><tspan class="cc">.</tspan>'
-                f'<tspan class="key">{esc(b)}</tspan>'
-            )
-        else:
-            label_xml = f'<tspan class="key">{esc(label)}</tspan>'
-        info_parts.append(
-            f'<tspan x="{info_x}" y="{y}" class="cc">. </tspan>{label_xml}'
-            f'<tspan class="cc">:</tspan><tspan class="cc">{esc(dots)}</tspan>'
-            f'<tspan class="value">{esc(value)}</tspan>'
+        # row: label in the key column, dotted leader fills the gap, value
+        # starts on a single fixed x so every value lines up down the card.
+        label = key if len(key) <= label_col else key[: label_col - 1] + "…"
+        dot_start = label_x + len(label) * CHAR_W + 10
+        dot_room = int((value_x - dot_start - 12) / CHAR_W)
+        dots = "." * max(1, dot_room)
+        parts.append(
+            f'<tspan x="{label_x}" y="{y}" fill="{t["key"]}">{esc(label)}</tspan>'
+            f'<tspan x="{dot_start}" y="{y}" fill="{t["cc"]}">{esc(dots)}</tspan>'
+            f'<tspan x="{value_x}" y="{y}" fill="{t["value"]}">{esc(value)}</tspan>'
         )
-        y += line_h
+        y += LINE_H
 
-    height = max(int(photo_y + photo + pad + 24), int(y + pad + 8))
+    # left column: stats under the photo
+    stat_y = photo_y + PHOTO + 32
+    stat_parts: list[str] = []
+    for label, value in stat_rows:
+        value_start = photo_x + PHOTO - len(value) * CHAR_W
+        dot_start = photo_x + len(label) * CHAR_W + 10
+        dot_room = int((value_start - dot_start - 14) / CHAR_W)
+        stat_parts.append(
+            f'<tspan x="{photo_x}" y="{stat_y}" fill="{t["key"]}">{esc(label)}</tspan>'
+            f'<tspan x="{dot_start}" y="{stat_y}" fill="{t["cc"]}">{esc("." * max(1, dot_room))}</tspan>'
+            f'<tspan x="{value_start}" y="{stat_y}" fill="{t["value"]}">{esc(value)}</tspan>'
+        )
+        stat_y += LINE_H
+
+    height = max(photo_y + PHOTO + PAD, int(y + 6), int(stat_y + 6))
+    title = cfg.get("window_title", f"{cfg['username']} / README.md")
+
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="{width}" height="{height}"
-     font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
-     font-size="{font_size}px" role="img"
-     aria-label="{esc(cfg['display_name'])} — neofetch-style GitHub profile">
-  <title>{esc(cfg['display_name'])} · GitHub Profile</title>
+     width="{width}" height="{height}" viewBox="0 0 {width} {height}"
+     font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace"
+     font-size="{FONT_SIZE}px" role="img"
+     aria-label="{esc(cfg['display_name'])} — GitHub profile">
+  <title>{esc(cfg['display_name'])} — GitHub Profile</title>
+  <desc>{esc(cfg['display_name'])}. {esc(cfg.get('bio', {}).get('Role', ''))}. Based in {esc(cfg.get('bio', {}).get('Location', ''))}.</desc>
   <style><![CDATA[
     .key {{ fill: {t['key']}; }}
     .value {{ fill: {t['value']}; }}
@@ -215,24 +259,27 @@ def build_svg(mode: str, face_b64: str, cfg: dict, stats: dict) -> str:
   ]]></style>
   <defs>
     <clipPath id="faceClip">
-      <rect x="{photo_x}" y="{photo_y}" width="{photo}" height="{photo}" rx="12" ry="12"/>
+      <rect x="{photo_x}" y="{photo_y}" width="{PHOTO}" height="{PHOTO}" rx="10" ry="10"/>
     </clipPath>
   </defs>
-  <rect width="100%" height="100%" rx="12" fill="{t['bg']}"/>
-  <rect width="100%" height="36" rx="12" fill="{t['bar']}"/>
-  <rect y="20" width="100%" height="16" fill="{t['bar']}"/>
-  <circle cx="22" cy="18" r="5" fill="{t['dot_r']}"/>
-  <circle cx="40" cy="18" r="5" fill="{t['dot_y']}"/>
-  <circle cx="58" cy="18" r="5" fill="{t['dot_g']}"/>
-  <text x="{width/2}" y="22" text-anchor="middle" fill="{t['title']}" font-size="12px">{esc(title)}</text>
-  <rect x="{photo_x-1}" y="{photo_y-1}" width="{photo+2}" height="{photo+2}" rx="13"
+  <rect width="100%" height="100%" rx="10" fill="{t['bg']}"/>
+  <rect width="100%" height="{BAR_H}" rx="10" fill="{t['bar']}"/>
+  <rect y="{BAR_H - 14}" width="100%" height="14" fill="{t['bar']}"/>
+  <circle cx="20" cy="19" r="5" fill="{t['dot_r']}"/>
+  <circle cx="37" cy="19" r="5" fill="{t['dot_y']}"/>
+  <circle cx="54" cy="19" r="5" fill="{t['dot_g']}"/>
+  <text x="{width / 2}" y="23" text-anchor="middle" fill="{t['title']}" font-size="12px">{esc(title)}</text>
+  <rect x="{photo_x - 1}" y="{photo_y - 1}" width="{PHOTO + 2}" height="{PHOTO + 2}" rx="11"
         fill="none" stroke="{t['frame']}" stroke-width="1"/>
-  <image x="{photo_x}" y="{photo_y}" width="{photo}" height="{photo}"
+  <image x="{photo_x}" y="{photo_y}" width="{PHOTO}" height="{PHOTO}"
          clip-path="url(#faceClip)" preserveAspectRatio="xMidYMid slice"
-         href="data:image/jpeg;base64,{face_b64}"
-         xlink:href="data:image/jpeg;base64,{face_b64}"/>
-  <text x="{info_x}" y="{photo_y+8}" fill="{t['fg']}" xml:space="preserve">
-    {''.join(info_parts)}
+         href="data:image/jpeg;base64,{photo_b64}"
+         xlink:href="data:image/jpeg;base64,{photo_b64}"/>
+  <text x="{info_x}" y="{photo_y + 2}" fill="{t['fg']}" xml:space="preserve">
+    {''.join(parts)}
+  </text>
+  <text x="{photo_x}" y="{photo_y + PHOTO + 32}" fill="{t['fg']}" xml:space="preserve">
+    {''.join(stat_parts)}
   </text>
 </svg>
 '''
@@ -250,9 +297,6 @@ def main() -> None:
     else:
         ensure_avatar(ROOT / "assets" / "avatar.png")
 
-    face = prepare_face_jpg(portrait, ROOT / "assets" / "face.jpg", size=400)
-    face_b64 = base64.b64encode(face.read_bytes()).decode("ascii")
-
     try:
         w = int(cfg.get("ascii", {}).get("width", 52))
         h = int(cfg.get("ascii", {}).get("height", 28))
@@ -262,8 +306,13 @@ def main() -> None:
 
     stats = load_stats()
     for mode, name in (("dark", "dark_mode.svg"), ("light", "light_mode.svg")):
-        (ROOT / name).write_text(build_svg(mode, face_b64, cfg, stats), encoding="utf-8")
-        print(f"Wrote {name} ({(ROOT / name).stat().st_size:,} bytes)")
+        photo = duotone_face(portrait, ROOT / f"assets/face_{mode}.jpg", mode)
+        photo_b64 = base64.b64encode(photo.read_bytes()).decode("ascii")
+        (ROOT / name).write_text(build_svg(mode, photo_b64, cfg, stats), encoding="utf-8")
+        size = (ROOT / name).stat().st_size
+        print(f"Wrote {name} ({size:,} bytes)")
+        if size > 250_000:
+            raise SystemExit(f"{name} exceeds GitHub's 250 KB profile-image cap")
 
 
 if __name__ == "__main__":

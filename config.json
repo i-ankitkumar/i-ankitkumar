@@ -2,24 +2,24 @@
   "username": "i-ankitkumar",
   "display_name": "Ankit Kumar",
   "user_at_host": "ankit@kumar",
+  "window_title": "i-ankitkumar / README.md",
   "bio": {
-    "OS": "Linux · macOS · Cloud",
-    "Host": "IT Infrastructure & Operations",
-    "Kernel": "Cloud · Automation · Software & AI",
-    "Shell": "zsh · Cursor · VS Code",
-    "Languages.Stack": "Python, Terraform, Bash, YAML",
-    "Languages.Cloud": "AWS, Azure, Linux, Ansible",
-    "Languages.Data": "Pandas, NumPy, TensorFlow, Keras",
-    "Languages.AI": "MCP, LLM pipelines, Agents",
+    "Role": "Infrastructure Engineer → Software & AI Engineering",
     "Focus": "Splunk · Terraform · AI tooling",
+    "Stack": "Python · Terraform · Bash · YAML",
+    "Cloud": "AWS · Azure · Linux · Ansible",
+    "AI": "MCP · LLM pipelines · Agents",
+    "Scale": "20,000+ endpoints · 2,500+ subscriptions scanned",
+    "Impact": "Index provisioning 3 days → 15 min",
+    "Certs": "Terraform Associate · AZ-104 · RHCSA",
+    "In progress": "AZ-400 (DevOps Solutions)",
     "Location": "Pune, India → Germany"
   },
   "contact": {
+    "Portfolio": "iankitkumar.in",
+    "Blog": "blog.iankitkumar.in",
     "GitHub": "i-ankitkumar",
-    "LinkedIn": "i-ankitkumar",
-    "Twitter": "n0tg33k",
-    "YouTube": "@AnkitKumar22",
-    "Instagram": "iankitkumar"
+    "LinkedIn": "i-ankitkumar"
   },
   "ascii": {
     "width": 48,

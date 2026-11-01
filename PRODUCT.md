@@ -42,16 +42,22 @@ Mechanism: the visible artifacts are a system-summary card and a long-form profi
 
 The product ships across three repos. They share the audience, positioning, evidence, principles, and brand commitments above. They differ in stack, output, and operating constraints. The durable product truth lives in this file; the per-surface detail lives in each repo's PRODUCT.md so each surface can stay in lockstep without duplication.
 
-### Surface 1 — GitHub profile cards (neofetch SVGs)
+### Surface 1 — GitHub profile card (terminal register)
 
 - **Repo**: `github.com/i-ankitkumar/i-ankitkumar`
-- **Stack**: Python 3.12 + Pillow + chafa (chafa is CI-only)
-- **Output**: `dark_mode.svg` and `light_mode.svg`, ~120 KB each, well under GitHub's 250 KB profile-image cap
-- **Where it renders**: GitHub profile README (img tag)
+- **Stack**: Python 3.12 + Pillow (chafa is CI-only, for the ASCII cache)
+- **Output**: `dark_mode.svg` and `light_mode.svg`, ~110 KB each, well under GitHub's 250 KB profile-image cap
+- **Where it renders**: GitHub profile README (img tag, `?v=4` cache-buster)
 - **CI**: GitHub Actions cron `30 6 * * *` and on push of `config.json`, `scripts/**`, `assets/portrait.png`, or the workflow file. Generated artifacts are committed back to the repo
-- **Local override**: `assets/portrait.png` overrides the GitHub avatar for the ASCII side. The auto-refresh must not silently replace it
-- **Customization point**: `config.json` (bio, contact, ascii source). The generator and SVGs are derived; edit the generator and the config, not the SVGs
-- **Visual register**: the terminal/CLI idiom is the binding aesthetic for this surface. The GitHub-style dark palette, monospace, key/value rows, and the ASCII side are the brand here and are not replaced by the portfolio site's typographic register
+- **Local override**: `assets/portrait.png` overrides the GitHub avatar for the face crop. The auto-refresh must not silently replace it
+- **Customization point**: `config.json` (bio rows, contact links, window title). The generator and SVGs are derived; edit the generator and the config, not the SVGs
+- **Visual register**: the terminal/CLI idiom is the binding aesthetic for this surface. Monospace, a window chrome bar, and key/value rows are the brand here and are not replaced by the portfolio site's typographic register
+- **Card content rules** (binding, added 2026-11-01):
+  - **No cosplay fields.** Nothing is labelled `OS`, `Uptime`, `Host`, `Kernel`, or `Shell`. Those labels were a neofetch costume: "Uptime: 8 years" was a GitHub account age, not career tenure, and "Kernel: Cloud · Automation" was not a kernel. A row that cannot be verified as its label claims is a defect.
+  - **Every row is a verified fact from `career-ops/cv.md`** — role, focus, stack, cloud, AI practice, scale, impact, certs, location. No value claim, no marketing copy.
+  - **The value column is a fixed grid.** The key column is sized to the longest label so every value starts on the same x. Ragged value alignment was a visible defect of the previous card.
+  - **The photo is duotoned**, not full colour, so the portrait sits inside the palette instead of fighting it. Dark theme ramps shadows to the card background; light theme ramps ink to soft paper. A negative-looking light-theme photo is a defect.
+  - **The card answers the recruiter's question, the README carries the argument.** The card is the five-second read; the README is the depth. They must not duplicate each other.
 - **What this surface does NOT do**: it does not host the portfolio, host a CV PDF, or run an interactive terminal. It is the static identity card
 
 ### Surface 2 — Live site at iankitkumar.in
@@ -104,7 +110,7 @@ The product ships across three repos. They share the audience, positioning, evid
 
 ## Brand Commitments
 
-- **Terminal / CLI aesthetic is binding.** The neofetch card is the identity, not a decoration. Future work preserves the form factor (system-summary style, monospace, key/value pairs, ASCII side) unless the user explicitly reopens the brand.
+- **Terminal / CLI aesthetic is binding.** The profile card is the identity, not a decoration. Future work preserves the form factor (window chrome, monospace, aligned key/value pairs, duotone portrait) unless the user explicitly reopens the brand. The *content* of the card is free to change; the *form* is not.
 - **Real name and identity.** "Ankit Kumar", handle `i-ankitkumar`, host label `ankit@kumar` (as rendered by `config.json` -> `user_at_host`). These are the brand; fictional personas are not.
 - **Honest voice.** No marketing copy. If a statement is a fact (cert, level, eligibility), it is stated as a fact. If it is a value claim, it is softened or omitted.
 - **Dark theme is the default.** Light theme exists for the visitors who need it, not as a co-equal brand.
@@ -112,13 +118,16 @@ The product ships across three repos. They share the audience, positioning, evid
 ## Evidence on Hand
 
 - `config.json` — drives every visible label, both themes, contact links.
-- `assets/portrait.png` — local face source for the ASCII side (do not silently overwrite).
+- `assets/portrait.png` — local face source for the duotone crop (do not silently overwrite).
+- `assets/face_dark.jpg`, `assets/face_light.jpg` — generated duotone portraits, one per theme.
 - `cache/stats.json`, `cache/ascii.txt` — generated by the workflow; reflect live GitHub state at last regen.
-- `dark_mode.svg`, `light_mode.svg` — current visible artifacts, ~120 KB each.
+- `dark_mode.svg`, `light_mode.svg` — current visible artifacts, ~110 KB each.
+- `scripts/preview_readme.py` — renders README.md through the GitHub markdown API and screenshots it in both themes. Use it to review a README change without pushing.
 - Live surfaces: `github.com/i-ankitkumar` (profile README), `iankitkumar.in` (deeper site), `blog.iankitkumar.in` (writing).
 - Verified certs: Terraform Associate, AZ-104, RHCSA (active); AZ-400 (in progress); AZ-900, AI-900 (held, expired).
 - Self-reported language levels: German A2, English C1, Hindi (native).
-- Contact links present in `config.json`: GitHub, LinkedIn, Twitter, YouTube, Instagram.
+- Contact links present in `config.json`: Portfolio, Blog, GitHub, LinkedIn.
+- Scale facts quoted on the card and README, all traceable to `career-ops/cv.md`: 20,000+ endpoints under upgrade automation, 2,500+ subscriptions scanned for tech debt, index provisioning turnaround 3-5 days → 10-15 min, 35% Azure cost reduction, IDS_using_MLP accuracy 98.10% binary / 97.62% multi-class.
 
 **Absences future work must not fabricate:** case studies, named employers beyond the current role, named clients, named scale (requests/sec, user counts, cost savings), testimonials, conference talks, awards, press.
 
@@ -132,8 +141,8 @@ The product ships across three repos. They share the audience, positioning, evid
 
 ## Accessibility & Inclusion
 
-- Both themes must meet WCAG AA contrast for the key/value text in the card. Current dark theme: bg `#161b22`, key `#ffa657`, value `#a5d6ff`. Light theme: bg `#ffffff`, key `#953800`, value `#0550ae`. Any palette change must defend both pairs against AA (4.5:1 for body text, 3:1 for large text).
+- Both themes must meet WCAG AA contrast for the key/value text in the card. Current dark theme: bg `#0d1117`, key `#ffa657`, value `#a5d6ff`, leader/comment `#768390`. Light theme: bg `#ffffff`, key `#953800`, value `#0550ae`, leader/comment `#6e7781`. Any palette change must defend all pairs against AA (4.5:1 for body text, 3:1 for large text). The leader-dot colour used to be `#616e7f` (3.65:1 on dark) and failed AA body text; it is now `#768390` (4.88:1).
 - When the SVG is consumed standalone (not as a README inline), it must include `<title>` and `<desc>` elements so screen readers can announce what the card is.
 - Copy is in English at a C1 register. Avoid marketing-style superlatives; favor plain, factual phrasing. Visitors whose first language is not English should not need to fight the copy.
-- The ASCII side is decorative. A visitor using a screen reader or `prefers-reduced-motion` should still get the key/value content from the SVG.
+- The portrait is decorative. A visitor using a screen reader or `prefers-reduced-motion` should still get the key/value content from the SVG. The `<desc>` element names the role and location so the standalone card announces the essentials.
 - No flashing or motion in the card itself. Any animation added later must respect `prefers-reduced-motion`.
