@@ -14,7 +14,7 @@
 
 Terraform Associate · AZ-104 · RHCSA · AZ-400 (in progress) · AZ-900 · AI-900
 
-Pune, India → relocating to Heidelberg, Germany
+Pune, India → relocating to Germany
 
 ---
 
