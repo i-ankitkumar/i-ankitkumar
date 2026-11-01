@@ -66,3 +66,5 @@ The hard part is not the arithmetic, it is that a ₹1,248 order might be entire
 ---
 
 More depth, the long-form version, and the CV: **[iankitkumar.in](https://iankitkumar.in)** · **[blog.iankitkumar.in](https://blog.iankitkumar.in)**
+
+Elsewhere: [X / Twitter](https://twitter.com/n0tg33k) · [YouTube](https://youtube.com/@AnkitKumar22) · [Instagram](https://instagram.com/iankitkumar)
