@@ -58,6 +58,10 @@ The product ships across three repos. They share the audience, positioning, evid
   - **The value column is a fixed grid.** The key column is sized to the longest label so every value starts on the same x. Ragged value alignment was a visible defect of the previous card.
   - **The photo is duotoned**, not full colour, so the portrait sits inside the palette instead of fighting it. Dark theme ramps shadows to the card background; light theme ramps ink to soft paper. A negative-looking light-theme photo is a defect.
   - **The card answers the recruiter's question, the README carries the argument.** The card is the five-second read; the README is the depth. They must not duplicate each other.
+  - **Never print a repo count on the card.** GitHub prints one in the tab bar directly above the card, and the two numbers do not agree — the nav counted 21 while the API returned 18. A card counter that contradicts the platform's own number reads as a bug. Contribution count stays (the heatmap further down the profile is a shape, not a figure).
+  - **The photo is sized to the panel, not fixed.** `build_svg` measures the right column first, then sets the photo height to match, so there is no dead space under the portrait and the two columns read as one panel.
+  - **The card's crop is `card_face_crop`, not `_face_crop`.** The ASCII-art crop (40% of width) clipped the chin and left the portrait small in frame with the wooden-door background dominating. The card crop is 36% of width centred on (44%, 36.5%), which keeps the whole head in frame.
+- **Cert status must be stated honestly.** AZ-900 and AI-900 are held but expired. The card lists only active certs plus AZ-400 as in progress; the README's credentials table carries the full set with an explicit `Held, expired` status. Never print expired certs as if current.
 - **What this surface does NOT do**: it does not host the portfolio, host a CV PDF, or run an interactive terminal. It is the static identity card
 
 ### Surface 2 — Live site at iankitkumar.in

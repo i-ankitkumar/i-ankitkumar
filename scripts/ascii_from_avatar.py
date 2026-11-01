@@ -36,6 +36,24 @@ def _face_crop(img: Image.Image) -> Image.Image:
     return img.crop((left, top, left + side, min(h, top + side)))
 
 
+def card_face_crop(img: Image.Image) -> Image.Image:
+    """Square crop for the profile card, framed on the face.
+
+    Measured on the 768x1024 source: the sunglass line sits at ~44% across
+    and ~36% down, the hairline at ~29% down, the chin at ~46% down. A
+    square of 36% of the image width centred on (44%, 36.5%) keeps the
+    whole head in frame with a little headroom and cuts the wooden-door
+    background down. The wider 40% crop used for the ASCII art clipped the
+    chin at the bottom edge and gave the face too little of the frame.
+    """
+    w, h = img.size
+    side = int(w * 0.36)
+    cx, cy = int(w * 0.44), int(h * 0.365)
+    left = max(0, min(w - side, cx - side // 2))
+    top = max(0, min(h - side, cy - side // 2))
+    return img.crop((left, top, left + side, top + side))
+
+
 def _preprocess(path: Path) -> Image.Image:
     img = ImageOps.exif_transpose(Image.open(path)).convert("RGB")
     img = _face_crop(img)

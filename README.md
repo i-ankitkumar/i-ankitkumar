@@ -2,9 +2,9 @@
 <p align="center">
   <a href="https://github.com/i-ankitkumar">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./dark_mode.svg?v=4" />
-      <source media="(prefers-color-scheme: light)" srcset="./light_mode.svg?v=4" />
-      <img src="./dark_mode.svg?v=4" alt="Ankit Kumar — GitHub profile" width="100%" />
+      <source media="(prefers-color-scheme: dark)" srcset="./dark_mode.svg?v=5" />
+      <source media="(prefers-color-scheme: light)" srcset="./light_mode.svg?v=5" />
+      <img src="./dark_mode.svg?v=5" alt="Ankit Kumar — GitHub profile" width="100%" />
     </picture>
   </a>
 </p>
@@ -15,7 +15,7 @@
 
 I turn three-day infrastructure work into fifteen-minute button presses. Splunk across 20,000 endpoints, Terraform, Python — and lately a stack of AI agents that share memory.
 
-**Pune, India** · relocating to Germany · Open to software & AI engineering roles in Germany · English (C1) · German (A2)
+**Pune, India** → relocating to Germany · Open to software & AI engineering roles · English (C1) · German (A2)
 
 <p align="center">
   <a href="https://iankitkumar.in"><img src="https://img.shields.io/badge/Portfolio-iankitkumar.in-0068D6?logo=google-chrome&logoColor=white" alt="Portfolio" /></a>
@@ -28,10 +28,10 @@ I turn three-day infrastructure work into fifteen-minute button presses. Splunk 
 
 ### What I work on
 
-**Production infrastructure, then the AI tooling on top of it.** Five years of it at enterprise scale, and the last two years spent turning that context into software: MCP servers, agent stacks, and the automation that removes a day of toil from someone else's week.
+**Production infrastructure first, then the AI tooling on top of it.** Five years of it at enterprise scale, and the automation to match.
 
-- **Splunk & observability** — multi-site clustering, upgrade automation across 20,000+ endpoints, audit-ready dashboards, RPO/RTO-defined DR plans.
-- **Cloud & IaC** — Azure landing zones and governance policies via Terraform, AWS automation, CI/CD on Azure DevOps and GitHub Actions, Docker and Kubernetes.
+- **Splunk & observability** — multi-site clustering, upgrade automation across 20,000+ endpoints, audit-ready dashboards, DR plans with defined RPO/RTO.
+- **Cloud & IaC** — Azure landing zones and governance policies via Terraform, AWS automation, tech-debt scanning across 2,500+ subscriptions, CI/CD on Azure DevOps and GitHub Actions, Docker and Kubernetes.
 - **AI engineering** — MCP servers against real systems, LLM pipelines with schema-validated output, multi-agent stacks with shared memory, RAG with exact citations.
 
 ### Featured — [kittybot](https://github.com/i-ankitkumar/kittybot)
@@ -54,7 +54,14 @@ The hard part is not the arithmetic, it is that a ₹1,248 order might be entire
 
 ### Credentials
 
-**Terraform Associate** · **AZ-104** · **RHCSA** · AZ-400 *(in progress)* · AZ-900 · AI-900
+| Credential | Issuer | Status |
+|---|---|---|
+| HashiCorp Certified: Terraform Associate (003) | HashiCorp | Active |
+| Azure Administrator Associate (AZ-104) | Microsoft | Active |
+| Red Hat Certified System Administrator (RHCSA) | Red Hat | Active |
+| DevOps Engineer Associate (AZ-400) | Microsoft | In progress |
+| Azure Fundamentals (AZ-900) | Microsoft | Held, expired |
+| Azure AI Fundamentals (AI-900) | Microsoft | Held, expired |
 
 ### Research
 

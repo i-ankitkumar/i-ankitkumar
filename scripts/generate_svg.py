@@ -25,7 +25,12 @@ from PIL import Image, ImageEnhance, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ascii_from_avatar import _face_crop, image_to_ascii, save_ascii_cache  # noqa: E402
+from ascii_from_avatar import (  # noqa: E402
+    _face_crop,
+    card_face_crop,
+    image_to_ascii,
+    save_ascii_cache,
+)
 
 THEMES = {
     "dark": {
@@ -65,7 +70,7 @@ THEMES = {
 # geometry
 BAR_H = 38
 PAD = 24
-PHOTO = 300
+PHOTO_MIN = 260
 LABEL_CHARS = 13  # minimum width of the key column, in characters
 CHAR_W = 7.9  # monospace advance at font-size 13
 FONT_SIZE = 13
@@ -113,7 +118,7 @@ def duotone_face(src: Path, out: Path, theme: str, size: int = 420) -> Path:
     """
     t = THEMES[theme]
     img = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
-    img = _face_crop(img)
+    img = card_face_crop(img)
     w, h = img.size
     side = min(w, h)
     img = img.crop(((w - side) // 2, (w - side) // 2, (w - side) // 2 + side, (w - side) // 2 + side))
@@ -152,10 +157,16 @@ def build_rows(cfg: dict) -> list[tuple[str, str, str]]:
 
 
 def build_stat_rows(stats: dict) -> list[tuple[str, str]]:
-    """Left-column rows, under the photo. Vanity counters stay out."""
+    """Left-column rows, under the photo.
+
+    Only signals a recruiter cannot read off GitHub's own chrome stay here.
+    The repo count is deliberately absent: GitHub prints it in the tab bar
+    directly above the card, and a card counter that disagrees with the
+    platform's own number (the nav counts differently from the API) reads
+    as a bug. The contribution count is kept because the heatmap further
+    down the profile is a shape, not a figure.
+    """
     rows: list[tuple[str, str]] = []
-    repos = stats.get("public_repos", 0)
-    rows.append(("Repos", str(repos)))
     commits = stats.get("commits_year")
     if commits is not None:
         rows.append(("Commits", f"{commits:,} · last 12 months"))
@@ -169,7 +180,19 @@ def build_svg(mode: str, photo_b64: str, cfg: dict, stats: dict) -> str:
 
     photo_x = PAD
     photo_y = BAR_H + 26
-    info_x = photo_x + PHOTO + 44
+
+    # Pass 1: how tall is the right column? The photo is sized to match it,
+    # so the card has no dead space under the portrait and the two columns
+    # read as one panel instead of a photo with a gap beneath it.
+    right_h = 0
+    for kind, _, _ in rows:
+        right_h += LINE_H // 2 if kind == "blank" else LINE_H
+
+    # the stats block sits under the photo; reserve its height
+    stat_block_h = (len(stat_rows) * LINE_H) + (32 if stat_rows else 0)
+    photo_h = int(max(PHOTO_MIN, min(right_h - stat_block_h, 360)))
+
+    info_x = photo_x + photo_h + 44
     label_x = info_x + 10
     # the key column is as wide as the longest label, so every value starts
     # on the same x no matter how long its label is
@@ -227,10 +250,10 @@ def build_svg(mode: str, photo_b64: str, cfg: dict, stats: dict) -> str:
         y += LINE_H
 
     # left column: stats under the photo
-    stat_y = photo_y + PHOTO + 32
+    stat_y = photo_y + photo_h + 32
     stat_parts: list[str] = []
     for label, value in stat_rows:
-        value_start = photo_x + PHOTO - len(value) * CHAR_W
+        value_start = photo_x + photo_h - len(value) * CHAR_W
         dot_start = photo_x + len(label) * CHAR_W + 10
         dot_room = int((value_start - dot_start - 14) / CHAR_W)
         stat_parts.append(
@@ -240,7 +263,7 @@ def build_svg(mode: str, photo_b64: str, cfg: dict, stats: dict) -> str:
         )
         stat_y += LINE_H
 
-    height = max(photo_y + PHOTO + PAD, int(y + 6), int(stat_y + 6))
+    height = max(photo_y + photo_h + PAD, int(y + 6), int(stat_y + 6))
     title = cfg.get("window_title", f"{cfg['username']} / README.md")
 
     return f'''<?xml version="1.0" encoding="UTF-8"?>
@@ -259,7 +282,7 @@ def build_svg(mode: str, photo_b64: str, cfg: dict, stats: dict) -> str:
   ]]></style>
   <defs>
     <clipPath id="faceClip">
-      <rect x="{photo_x}" y="{photo_y}" width="{PHOTO}" height="{PHOTO}" rx="10" ry="10"/>
+      <rect x="{photo_x}" y="{photo_y}" width="{photo_h}" height="{photo_h}" rx="10" ry="10"/>
     </clipPath>
   </defs>
   <rect width="100%" height="100%" rx="10" fill="{t['bg']}"/>
@@ -269,16 +292,16 @@ def build_svg(mode: str, photo_b64: str, cfg: dict, stats: dict) -> str:
   <circle cx="37" cy="19" r="5" fill="{t['dot_y']}"/>
   <circle cx="54" cy="19" r="5" fill="{t['dot_g']}"/>
   <text x="{width / 2}" y="23" text-anchor="middle" fill="{t['title']}" font-size="12px">{esc(title)}</text>
-  <rect x="{photo_x - 1}" y="{photo_y - 1}" width="{PHOTO + 2}" height="{PHOTO + 2}" rx="11"
+  <rect x="{photo_x - 1}" y="{photo_y - 1}" width="{photo_h + 2}" height="{photo_h + 2}" rx="11"
         fill="none" stroke="{t['frame']}" stroke-width="1"/>
-  <image x="{photo_x}" y="{photo_y}" width="{PHOTO}" height="{PHOTO}"
+  <image x="{photo_x}" y="{photo_y}" width="{photo_h}" height="{photo_h}"
          clip-path="url(#faceClip)" preserveAspectRatio="xMidYMid slice"
          href="data:image/jpeg;base64,{photo_b64}"
          xlink:href="data:image/jpeg;base64,{photo_b64}"/>
   <text x="{info_x}" y="{photo_y + 2}" fill="{t['fg']}" xml:space="preserve">
     {''.join(parts)}
   </text>
-  <text x="{photo_x}" y="{photo_y + PHOTO + 32}" fill="{t['fg']}" xml:space="preserve">
+  <text x="{photo_x}" y="{photo_y + photo_h + 32}" fill="{t['fg']}" xml:space="preserve">
     {''.join(stat_parts)}
   </text>
 </svg>
