@@ -14,11 +14,22 @@ RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$
 
 
 def _face_crop(img: Image.Image) -> Image.Image:
-    """Tight face crop so identity fills the frame (Andrew-style framing)."""
+    """Tight face crop so identity fills the frame (Andrew-style framing).
+
+    For the tall portrait (sunglasses waist-up shot, 768x1024) the face
+    centre sits at roughly 44% across and 34% down the source. Cropping a
+    square of 40% of the image width around that point frames the head
+    with margin above and no clipping of the hair. The old 20%-80% /
+    1%-50% box put the face in the lower-left corner instead.
+    """
     w, h = img.size
     if h >= w * 1.15:
         # Tall portrait (sunglasses waist-up shot)
-        return img.crop((int(w * 0.20), int(h * 0.01), int(w * 0.80), int(h * 0.50)))
+        side = int(w * 0.40)
+        cx, cy = int(w * 0.443), int(h * 0.345)
+        left = max(0, min(w - side, cx - side // 2))
+        top = max(0, min(h - side, cy - side // 2))
+        return img.crop((left, top, left + side, top + side))
     side = min(w, h)
     left = (w - side) // 2
     top = max(0, (h - side) // 2 - int(side * 0.05))

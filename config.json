@@ -5,13 +5,14 @@
   "bio": {
     "OS": "Linux · macOS · Cloud",
     "Host": "IT Infrastructure & Operations",
-    "Kernel": "Cloud · Automation · Security",
+    "Kernel": "Cloud · Automation · Software & AI",
     "Shell": "zsh · Cursor · VS Code",
     "Languages.Stack": "Python, Terraform, Bash, YAML",
     "Languages.Cloud": "AWS, Azure, Linux, Ansible",
     "Languages.Data": "Pandas, NumPy, TensorFlow, Keras",
-    "Focus": "Cloud · Automation · MLOps",
-    "Location": "India · Remote"
+    "Languages.AI": "MCP, LLM pipelines, Agents",
+    "Focus": "Splunk · Terraform · AI tooling",
+    "Location": "Pune, India → Germany"
   },
   "contact": {
     "GitHub": "i-ankitkumar",

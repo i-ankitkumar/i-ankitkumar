@@ -120,6 +120,7 @@ def render_info_lines(cfg: dict, stats: dict) -> list[tuple[str, str]]:
         "Languages.Stack",
         "Languages.Cloud",
         "Languages.Data",
+        "Languages.AI",
         "Focus",
         "Location",
     ]:
