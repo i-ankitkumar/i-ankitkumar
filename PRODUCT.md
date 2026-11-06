@@ -10,7 +10,7 @@ web
 
 The portfolio serves three layered audiences. A visitor should self-select into the right depth within five seconds, then get richer content if they stay.
 
-- **Primary: technical recruiters and hiring managers in Germany and the EU.** Scanning a GitHub profile README or landing on iankitkumar.in during a sourcing pass. They want a fast yes/no on fit: location, eligibility, stack, seniority, contact.
+- **Primary: technical recruiters and hiring managers in Germany and the EU.** Scanning a GitHub profile README or landing on iankitkumar.in during a sourcing pass. They want a fast yes/no on fit: location, relocation status, stack, seniority, contact.
 - **Secondary: software and AI engineering hiring managers.** Dig past the first fold for evidence of scope, scale, and recent work. Want credible claims, easy access to deeper material, and a sense of whether the candidate can ship.
 - **Tertiary: peers in DevOps, SRE, MLOps, and AI-engineering communities.** Visiting for reasons other than hiring: project interest, voice, taste, conversation starters.
 
@@ -20,7 +20,7 @@ Decision shape the design must protect: the first five seconds answer the recrui
 
 Ankit Kumar's personal site and GitHub profile presence. It communicates an **infrastructure engineer transitioning into software and AI engineering**, anchored in real Splunk, Azure, AWS, Terraform, MCP, and AI-powered security work, and routes interested visitors to the right follow-up surface (resume, GitHub, LinkedIn, blog).
 
-Success looks like: a recruiter or manager can confirm fit (Pune, relocating to Germany, EU Blue Card eligible, Splunk multi-site + Azure + AWS + Terraform + MCP, comfortable with software and AI engineering crossover) from the profile alone, without needing to ask. Failure looks like: a visitor leaves unsure of location, eligibility, or how to make contact.
+Success looks like: a recruiter or manager can confirm fit (Pune, relocating to Germany, Splunk multi-site + Azure + AWS + Terraform + MCP, comfortable with software and AI engineering crossover) from the profile alone, without needing to ask. Failure looks like: a visitor leaves unsure of location, relocation status, or how to make contact.
 
 ## Positioning
 
@@ -96,11 +96,11 @@ The product ships across three repos. They share the audience, positioning, evid
 
 **Constraints (binding):**
 
-- Every claim is verifiable and must remain so. Cert list (Terraform Associate, AZ-104, RHCSA, AZ-900, AI-900, AZ-400 in progress), language levels (German A2, English C1, Hindi native), and EU Blue Card eligibility are factual. Future design work must not invent additional certs, client logos, testimonials, employers, or metrics.
+- Every claim is verifiable and must remain so. Cert list (Terraform Associate, AZ-104, RHCSA, AZ-900, AI-900, AZ-400 in progress) and language levels (German A2, English C1, Hindi native) are factual. Future design work must not invent additional certs, client logos, testimonials, employers, or metrics.
 - SVGs must stay under GitHub's 250 KB profile-image cap. Current size is 120 KB; any growth plan needs to defend its bytes.
 - Dark and light themes must move together. Changing one without the other is a defect.
 - `config.json` is the source of truth for all visible copy. Editing the SVGs by hand is wrong; editing the generator is right.
-- EU Blue Card eligibility is a legal status. Stating it weakly to avoid legal concern is a failure; stating it correctly is the job.
+- EU Blue Card eligibility is **not published on any public surface**. It is a legal status that depends on a job offer: the employer sponsors it, and the applicant applies at the German embassy in Mumbai only once an offer is in hand. Publishing "EU Blue Card eligible" before then states a status that is not yet true, so the surface states relocation status ("relocating to Germany") instead and says nothing about eligibility. This decision came from Ankit on 2026-11-06, superseding the earlier rule that the claim should be stated strongly.
 - Generated artifacts (`dark_mode.svg`, `light_mode.svg`, `cache/stats.json`, `cache/ascii.txt`, `assets/face.jpg`) are committed and tracked; the `avatar.png` cache is allowed to be refreshed.
 - Monospace and the GitHub-style dark palette are part of this surface's brand. A pivot of the card itself to a sans-serif / SaaS-template look would be a rebrand, not a redesign. The portfolio site at iankitkumar.in runs a separate monochrome-precision register; that does not license the card to follow it.
 
@@ -116,7 +116,7 @@ The product ships across three repos. They share the audience, positioning, evid
 
 - **Terminal / CLI aesthetic is binding.** The profile card is the identity, not a decoration. Future work preserves the form factor (window chrome, monospace, aligned key/value pairs, duotone portrait) unless the user explicitly reopens the brand. The *content* of the card is free to change; the *form* is not.
 - **Real name and identity.** "Ankit Kumar", handle `i-ankitkumar`, host label `ankit@kumar` (as rendered by `config.json` -> `user_at_host`). These are the brand; fictional personas are not.
-- **Honest voice.** No marketing copy. If a statement is a fact (cert, level, eligibility), it is stated as a fact. If it is a value claim, it is softened or omitted.
+- **Honest voice.** No marketing copy. If a statement is a fact (cert, language level, relocation status), it is stated as a fact. If it is a value claim, it is softened or omitted.
 - **Dark theme is the default.** Light theme exists for the visitors who need it, not as a co-equal brand.
 
 ## Evidence on Hand
